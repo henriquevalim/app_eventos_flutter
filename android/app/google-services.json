@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "562082927604",
+    "project_id": "eventos-app-flutter",
+    "storage_bucket": "eventos-app-flutter.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:562082927604:android:04fa3fd11e8098de6ddfa1",
+        "android_client_info": {
+          "package_name": "com.example.eventos_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDqkVmvPM7azHfgPEgQRzcliaRbD1JhcYU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
