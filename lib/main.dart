@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-import 'screens/login_screen.dart'; // Importa a tela de login
-import 'screens/main_screen.dart';  // Importa a tela principal (com a barra de navegação)
+import 'screens/login_screen.dart';
+import 'screens/main_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,8 +21,8 @@ class MyApp extends StatelessWidget {
       title: 'App de Eventos',
       theme: ThemeData(
         primarySwatch: Colors.indigo,
-        scaffoldBackgroundColor: const Color(0xFFF9FAFB), // Cor de fundo padrão
-        fontFamily: 'Inter', // Recomendo adicionar a fonte Inter ao projeto
+        scaffoldBackgroundColor: const Color(0xFFF9FAFB),
+        fontFamily: 'Inter',
       ),
       // Define a tela inicial
       initialRoute: '/',

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
-import 'home_screen.dart'; // Importa a tela de pacotes
+import 'home_screen.dart';
+import 'calendar_screen.dart';
+import 'chat_screen.dart';
+import 'profile_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -11,12 +14,12 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
 
-  // Lista de telas que serão exibidas pela barra de navegação
+
   static const List<Widget> _widgetOptions = <Widget>[
-    HomeScreen(), // Index 0
-    Text('Tela de Agenda'), // Index 1
-    Text('Tela de Chat'),   // Index 2
-    Text('Tela de Perfil'),  // Index 3
+    HomeScreen(),
+    AgendaScreen(),
+    ChatScreen(),
+    PerfilScreen(),
   ];
 
   void _onItemTapped(int index) {
@@ -34,27 +37,32 @@ class _MainScreenState extends State<MainScreen> {
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
-            icon: Icon(Icons.home),
+            icon: Icon(Icons.home_outlined),
+            activeIcon: Icon(Icons.home), // Ícone quando selecionado
             label: 'Início',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_today),
+            icon: Icon(Icons.calendar_today_outlined),
+            activeIcon: Icon(Icons.calendar_today),
             label: 'Agenda',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.chat_bubble_outline),
+            activeIcon: Icon(Icons.chat_bubble),
             label: 'Chat',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person_outline),
+            activeIcon: Icon(Icons.person),
             label: 'Perfil',
           ),
         ],
         currentIndex: _selectedIndex,
         selectedItemColor: Colors.indigo,
-        unselectedItemColor: Colors.grey, // Cor para ícones não selecionados
-        showUnselectedLabels: true, // Mostra o label dos itens não selecionados
+        unselectedItemColor: Colors.grey,
+        showUnselectedLabels: true,
         onTap: _onItemTapped,
+        type: BottomNavigationBarType.fixed,
       ),
     );
   }
