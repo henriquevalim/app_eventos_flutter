@@ -1,9 +1,11 @@
+// Importa as telas necessárias, já com os nomes em inglês
+import 'package:eventos_app/screens/calendar_screen.dart';
+import 'package:eventos_app/screens/chat_screen.dart';
+import 'package:eventos_app/screens/home_screen.dart';
+import 'package:eventos_app/screens/profile_screen.dart';
 import 'package:flutter/material.dart';
-import 'home_screen.dart';
-import 'calendar_screen.dart';
-import 'chat_screen.dart';
-import 'profile_screen.dart';
 
+// Widget principal que controla a navegação com a barra inferior
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
@@ -12,17 +14,21 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
+  // Variável que armazena o índice da aba selecionada
   int _selectedIndex = 0;
 
-
+  // Lista de telas que serão exibidas. A ordem aqui importa!
   static const List<Widget> _widgetOptions = <Widget>[
     HomeScreen(),
-    AgendaScreen(),
+    // CORREÇÃO: O erro estava aqui. O nome da classe foi atualizado para CalendarScreen.
+    CalendarScreen(),
     ChatScreen(),
-    PerfilScreen(),
+    ProfileScreen(),
   ];
 
+  // Função chamada quando uma aba é tocada
   void _onItemTapped(int index) {
+    // Atualiza o estado para reconstruir a tela com o novo índice
     setState(() {
       _selectedIndex = index;
     });
@@ -31,39 +37,37 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // Exibe a tela correspondente ao índice selecionado
       body: Center(
         child: _widgetOptions.elementAt(_selectedIndex),
       ),
+      // Barra de navegação inferior
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home), // Ícone quando selecionado
+            icon: Icon(Icons.home),
             label: 'Início',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_today_outlined),
-            activeIcon: Icon(Icons.calendar_today),
+            icon: Icon(Icons.calendar_today),
             label: 'Agenda',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.chat_bubble_outline),
-            activeIcon: Icon(Icons.chat_bubble),
             label: 'Chat',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
             label: 'Perfil',
           ),
         ],
         currentIndex: _selectedIndex,
-        selectedItemColor: Colors.indigo,
-        unselectedItemColor: Colors.grey,
-        showUnselectedLabels: true,
-        onTap: _onItemTapped,
-        type: BottomNavigationBarType.fixed,
+        selectedItemColor: Colors.indigo, // Cor do ícone ativo
+        unselectedItemColor: Colors.grey,   // Cor dos ícones inativos
+        onTap: _onItemTapped,             // Função a ser chamada ao tocar
+        showUnselectedLabels: true,       // Garante que todos os rótulos apareçam
       ),
     );
   }
 }
+
