@@ -1,18 +1,18 @@
 import 'package:eventos_app/screens/login_screen.dart';
 import 'package:eventos_app/screens/main_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
+import 'package:flutter/material.dart';
+// 1. Importa o pacote de inicialização de data
+import 'package:intl/date_symbol_data_local.dart';
 
-Future<void> main() async {
-  // Garante que o Flutter está inicializado
+void main() async { // 2. Transforme a função main em 'async'
+  // Garante que o Flutter está pronto antes de executar código nativo.
   WidgetsFlutterBinding.ensureInitialized();
-  // Conecta com o projeto Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  // Inicia o aplicativo
+  // Inicializa o Firebase.
+  await Firebase.initializeApp();
+  await initializeDateFormatting('pt_BR', null);
+  // Executa a aplicação.
   runApp(const MyApp());
 }
 
@@ -22,30 +22,28 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Eventos App',
-      debugShowCheckedModeBanner: false,
+      title: 'EvenTech',
       theme: ThemeData(
         primarySwatch: Colors.indigo,
-        scaffoldBackgroundColor: const Color(0xFFF5F5F7),
+        visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      // Controla qual tela mostrar baseado no status de login
+      // Usa um StreamBuilder para "ouvir" o estado da autenticação em tempo real.
       home: StreamBuilder<User?>(
-        // Conecta com o stream de autenticação do Firebase
         stream: FirebaseAuth.instance.authStateChanges(),
         builder: (context, snapshot) {
-          // Enquanto verifica o status, mostra uma tela de carregamento
+          // Enquanto a verificação está a acontecer, mostra um ecrã de carregamento.
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Scaffold(body: Center(child: CircularProgressIndicator()));
           }
-          // Se o snapshot tem um usuário (usuário logado)
+          // Se o snapshot tiver dados (um utilizador), o utilizador está logado.
           if (snapshot.hasData) {
-            // Mostra a tela principal do app
-            return const MainScreen();
+            return const MainScreen(); // Vai para o ecrã principal.
           }
-          // Se não tem um usuário (usuário deslogado)
-          return const LoginScreen();
+          // Caso contrário, o utilizador não está logado.
+          return const LoginScreen(); // Vai para o ecrã de login.
         },
       ),
+      debugShowCheckedModeBanner: false,
     );
   }
 }
