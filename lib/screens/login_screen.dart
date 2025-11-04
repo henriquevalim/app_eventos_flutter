@@ -116,7 +116,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       : const Text('Entrar', style: TextStyle(fontSize: 16)),
                 ),
               ),
-              // Seu código de UI para o botão de cadastro...
+              //  código de UI para o botão de cadastro...
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

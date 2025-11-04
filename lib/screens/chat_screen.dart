@@ -21,8 +21,8 @@ class _ChatScreenState extends State<ChatScreen> {
   final List<ChatMessage> _messages = [];
   bool _isLoading = false;
 
-  // ESTE É O "CÉREBRO" DO  ASSISTENTE
-  // É aqui q defino o seu papel e conhecimento.
+  //"CÉREBRO" DO ASSISTENTE
+  // ATT: Agora inclui instruções para formatar a resposta em JSON.
   final String _systemPrompt = """
   Você é o "EvenTech Assistente", o assistente virtual amigável e profissional da EvenTech,
   uma empresa de estruturas para eventos no Rio Grande do Sul.
@@ -34,20 +34,35 @@ class _ChatScreenState extends State<ChatScreen> {
   instrua-o a usar o ecrã "Agendar" ou "Calendário" na aplicação.
 
   Aqui está a lista dos seus serviços, use-os como base para as suas respostas:
-
   - Montagem de Palco: A partir de R\$ 1800. Vários tamanhos (6x4m, 8x6m, 10x8m).
   - Deck e Pisos Elevados: A partir de R\$ 1500. Várias áreas (25m², 50m², 100m²).
-  - Sistema de Som: A partir de R\$ 800. Opções para pequeno, médio e grande porte.
+    - Sistema de Som: A partir de R\$ 800. Opções para pequeno, médio e grande porte.
   - Iluminação Profissional: A partir de R\$ 750. Opções de iluminação de pista, cénica ou completa.
   - Tenda Estruturada: A partir de R\$ 900. Opções de 5x5m e 10x10m.
   - Painel de LED: A partir de R\$ 1500. Vários tamanhos (3x2m, 4x3m, 5x3m).
   - Operador de Som (Técnico): Preço fixo de R\$ 500 por evento.
   - Operador de Luz (Iluminador): Preço fixo de R\$ 450 por evento.
 
-  Para serviços com variações, sempre informe o preço "A partir de" e sugira
-  que o cliente veja os detalhes e opções no ecrã do serviço.
-
   Não responda a perguntas que não tenham relação com eventos ou com os serviços da empresa.
+
+  IMPORTANTE: A sua resposta DEVE ser um objeto JSON.
+  O JSON deve ter SEMPRE a seguinte estrutura:
+  {
+    "respostaParaCliente": "Aqui vai o texto amigável da sua resposta.",
+    "servicoIdentificado": "Nome do serviço principal que o cliente perguntou, ou 'Nenhum'"
+  }
+  
+  Exemplo: Se o utilizador perguntar 'Olá', a sua resposta deve ser:
+  {
+    "respostaParaCliente": "Olá! Sou o EvenTech Assistente. Como posso ajudar sobre os nossos serviços de palco, som e luz?",
+    "servicoIdentificado": "Nenhum"
+  }
+
+  Exemplo: Se o utilizador perguntar 'Quanto custa o palco?', a sua resposta deve ser:
+  {
+    "respostaParaCliente": "O nosso serviço de Montagem de Palco começa em R\$ 1800, com opções de 6x4m, 8x6m e 10x8m. Você pode ver todos os detalhes no ecrã do serviço.",
+    "servicoIdentificado": "Montagem de Palco"
+  }
   """;
 
   // Função chamada quando o utilizador prime "Enviar"
@@ -64,9 +79,8 @@ class _ChatScreenState extends State<ChatScreen> {
     _controller.clear();
 
     try {
-      // Configurações da API do Gemini
-      // A chave API é deixada em branco, pois será fornecida pelo ambiente
-      const apiKey = "AIzaSyBiaS8qdEXdWThhSze2K9sluI4hI11Zyt8";
+      // A chave de API
+      const apiKey = "AIzaSyBiaS8qdEXdWThhSze2K9sluI4hI11Zyt8"; //
       const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=$apiKey";
 
       final headers = {'Content-Type': 'application/json'};
@@ -85,6 +99,10 @@ class _ChatScreenState extends State<ChatScreen> {
             {'text': _systemPrompt}
           ]
         },
+        // ATUALIZAÇÃO: Dizemos à API que queremos uma resposta JSON
+        'generationConfig': {
+          'responseMimeType': 'application/json',
+        }
       });
 
       // Faz a chamada à API
@@ -96,8 +114,21 @@ class _ChatScreenState extends State<ChatScreen> {
 
       if (response.statusCode == 200) {
         final result = jsonDecode(response.body);
-        // Extrai a resposta da IA
-        final aiResponse = result['candidates'][0]['content']['parts'][0]['text'];
+
+        //  A resposta agora é um JSON *dentro* do campo 'text'
+        final String jsonText = result['candidates'][0]['content']['parts'][0]['text'];
+
+        // **PARSE**
+        //(análise) desse JSON
+        final Map<String, dynamic> aiJsonResponse = jsonDecode(jsonText);
+
+        debugPrint("--- JSON COMPLETO RECEBIDO ---");
+        debugPrint(aiJsonResponse.toString());
+        debugPrint("--- SERVIÇO IDENTIFICADO (DO PARSE) ---");
+        debugPrint(aiJsonResponse['servicoIdentificado']);
+
+        // Extrai o texto de dentro do JSON
+        final String aiResponse = aiJsonResponse['respostaParaCliente'] ?? "Desculpe, não entendi a resposta da IA.";
 
         // Adiciona a resposta da IA ao ecrã
         setState(() {
@@ -227,3 +258,4 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 }
+
