@@ -6,7 +6,7 @@ import 'package:url_launcher/url_launcher.dart'; // Pacote para abrir o WhatsApp
 
 class ScheduleServiceScreen extends StatefulWidget {
   final Map<String, dynamic> service;
-  // ATUALIZAÇÃO: Tornámos a variação opcional (nullable) para corrigir o erro
+  // ATUALIZAÇÃO: tornei a variação opcional (nullable) para corrigir o erro
   final Map<String, dynamic>? selectedVariation;
 
   const ScheduleServiceScreen({

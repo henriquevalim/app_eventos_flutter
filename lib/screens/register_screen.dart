@@ -17,38 +17,84 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _isLoading = false;
 
   Future<void> _signUp() async {
+    if (_nameController.text.trim().isEmpty ||
+        _emailController.text.trim().isEmpty ||
+        _passwordController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Por favor, preencha todos os campos.'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
 
     try {
-      // 1. Cria o usuário no Firebase Authentication
-      final userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      // 1. Tenta criar o utilizador
+      await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
+      // Se chegar aqui, funcionou perfeitamente.
 
-      // 2. Salva informações adicionais do usuário no Firestore
-      if (userCredential.user != null) {
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(userCredential.user!.uid)
-            .set({
+    } on FirebaseAuthException catch (e) {
+      // Erros REAIS do Firebase (email duplicado, senha fraca, etc.)
+      String errorMessage = 'Ocorreu um erro no cadastro.';
+      if (e.code == 'email-already-in-use') {
+        errorMessage = 'Este e-mail já está a ser usado.';
+      } else if (e.code == 'weak-password') {
+        errorMessage = 'A senha é muito fraca.';
+      } else if (e.code == 'invalid-email') {
+        errorMessage = 'O e-mail é inválido.';
+      }
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(errorMessage), backgroundColor: Colors.red));
+      }
+      // Se foi um erro real de auth, paramos por aqui.
+      setState(() { _isLoading = false; });
+      return;
+
+    } catch (e) {
+      // Se cair aqui, pode ser o BUG do emulador.
+      // Nós apenas logamos o aviso e deixamos o código continuar para a verificação abaixo.
+      debugPrint("Aviso: Possível erro falso-positivo do emulador capturado: $e");
+    }
+
+    // 2. VERIFICAÇÃO DE SEGURANÇA E GRAVAÇÃO NO FIRESTORE
+    // Independentemente de ter dado o erro "Pigeon" ou não, verificamos:
+    // "Existe alguém logado agora?"
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      // SIM! O utilizador foi criado (mesmo que tenha dado erro no meio do caminho).
+      // Então, garantimos que o nome é salvo no Firestore.
+      try {
+        await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
           'name': _nameController.text.trim(),
           'email': _emailController.text.trim(),
           'createdAt': Timestamp.now(),
-          'role': 'client', // Define o cargo padrão como cliente
-        });
+          'role': 'client',
+        }, SetOptions(merge: true)); // 'merge' evita sobrescrever se já existir algo
+
+        // Tudo certo, fecha o ecrã de cadastro.
+        if (mounted) {
+          Navigator.of(context).pop();
+        }
+      } catch (firestoreError) {
+        debugPrint("Erro ao salvar no Firestore: $firestoreError");
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Conta criada, mas houve erro ao salvar o nome.'), backgroundColor: Colors.orange));
+        }
       }
-    } on FirebaseAuthException catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.message ?? 'Ocorreu um erro.'),
-          backgroundColor: Colors.red,
-        ),
-      );
     }
 
+    // Garante que o loading pare sempre no final de tudo.
     if (mounted) {
       setState(() {
         _isLoading = false;
@@ -66,7 +112,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // A UI é muito similar à de login, com um campo a mais
     return Scaffold(
       appBar: AppBar(
         title: const Text('Criar Conta'),
@@ -116,7 +161,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     padding: const EdgeInsets.all(16),
                   ),
                   child: _isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
+                      ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                        color: Colors.white, strokeWidth: 2),
+                  )
                       : const Text('Cadastrar', style: TextStyle(fontSize: 16)),
                 ),
               ),
@@ -127,4 +177,3 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 }
-
