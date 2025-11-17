@@ -1,10 +1,57 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'edit_profile_screen.dart'; // Importa o novo ecrã
+import 'edit_profile_screen.dart'; // Importa o ecrã de edição
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
+
+  // **** NOVA FUNÇÃO ****
+  // Função para enviar o e-mail de redefinição de senha
+  Future<void> _sendPasswordReset(BuildContext context, String email) async {
+    // 1. Mostrar um pop-up de confirmação primeiro
+    bool confirm = await showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Alterar Senha'),
+        content: Text('Será enviado um e-mail para $email com as instruções para redefinir a sua senha. Deseja continuar?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Não'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Sim, Enviar E-mail'),
+          ),
+        ],
+      ),
+    ) ?? false; // ?? false caso o utilizador feche o diálogo
+
+    if (!confirm) return; // Se o utilizador clicou "Não", paramos aqui.
+
+    // 2. Tentar enviar o e-mail
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('E-mail enviado! Verifique a sua caixa de entrada (e spam).'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao enviar e-mail: ${e.message}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -13,11 +60,9 @@ class ProfileScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Meu Perfil'),
-        automaticallyImplyLeading: false, // Remove a seta de voltar na barra inferior
+        automaticallyImplyLeading: false,
       ),
       body: StreamBuilder<DocumentSnapshot>(
-        // Usamos StreamBuilder para que o perfil atualize automaticamente
-        // assim que o utilizador voltar do ecrã de edição.
         stream: FirebaseFirestore.instance.collection('users').doc(user?.uid).snapshots(),
         builder: (context, snapshot) {
           String userName = 'Carregando...';
@@ -67,22 +112,22 @@ class ProfileScreen extends StatelessWidget {
                 title: const Text('Editar Dados do Perfil'),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {
-                  // Navega para o ecrã de edição
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => const EditProfileScreen()),
                   );
                 },
               ),
+              // **** LÓGICA ATUALIZADA AQUI ****
               ListTile(
                 leading: const Icon(Icons.lock_outline),
                 title: const Text('Alterar Senha'),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {
-                  // Futuro: Implementar alteração de senha
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Funcionalidade em breve!')),
-                  );
+                  // Chama a nova função de redefinição de senha
+                  if (user?.email != null) {
+                    _sendPasswordReset(context, user!.email!);
+                  }
                 },
               ),
               const Divider(),

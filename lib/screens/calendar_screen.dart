@@ -1,10 +1,9 @@
-
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // Pacote para formatar datas
+import 'package:url_launcher/url_launcher.dart'; // Para o WhatsApp
 
-// Ecrã que exibe os agendamentos do utilizador, agora mostrando a variação.
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
 
@@ -14,6 +13,103 @@ class CalendarScreen extends StatefulWidget {
 
 class _CalendarScreenState extends State<CalendarScreen> {
   final User? currentUser = FirebaseAuth.instance.currentUser;
+
+  // **** NOVA FUNÇÃO ****
+  // Função para notificar o admin sobre um CANCELAMENTO
+  Future<void> _launchWhatsAppCancellation(Map<String, dynamic> appointmentData) async {
+    // --- IMPORTANTE ---
+    const adminPhoneNumber = '5551920005515'; // <-- NÚMERO AQUI
+
+    final String serviceName = appointmentData['serviceName'] ?? 'Serviço';
+    final String variationSize = appointmentData['variationSize'] ?? '';
+    final DateTime eventDate = (appointmentData['eventDate'] as Timestamp).toDate();
+    final String formattedDate = DateFormat('dd/MM/yyyy \'às\' HH:mm').format(eventDate);
+    final String userEmail = currentUser?.email ?? 'Email não disponível';
+    // ADICIONADO: Capturar o endereço para a notificação
+    final String address = appointmentData['address'] ?? 'Endereço não informado';
+
+    final String message = """
+*!! CANCELAMENTO DE AGENDAMENTO !! (EvenTech App)*
+
+O seguinte pedido de agendamento foi CANCELADO pelo cliente:
+
+*Serviço:* $serviceName
+*Opção:* $variationSize
+*Data:* $formattedDate
+*Endereço:* $address
+*Cliente:* $userEmail
+""";
+
+    final String encodedMessage = Uri.encodeComponent(message);
+    final Uri whatsappUri = Uri.parse(
+        'https://wa.me/$adminPhoneNumber?text=$encodedMessage'
+    );
+
+    if (await canLaunchUrl(whatsappUri)) {
+      await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
+    } else {
+      debugPrint("Não foi possível abrir o WhatsApp para notificar o cancelamento.");
+      // Mesmo que não abra o WhatsApp, o cancelamento continua
+    }
+  }
+
+  // Função para mostrar o diálogo de confirmação
+  void _showCancelConfirmationDialog(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext ctx) {
+        return AlertDialog(
+          title: const Text('Confirmar Cancelamento'),
+          content: const Text('Tem a certeza de que deseja cancelar este agendamento? Esta ação não pode ser desfeita.'),
+          actions: [
+            TextButton(
+              child: const Text('Não'),
+              onPressed: () {
+                Navigator.of(ctx).pop(); // Fecha o diálogo
+              },
+            ),
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.red,
+              ),
+              child: const Text('Sim, Cancelar'),
+              onPressed: () async {
+                Navigator.of(ctx).pop(); // Fecha o diálogo
+
+                try {
+                  // 1. Tenta notificar o admin no WhatsApp
+                  await _launchWhatsAppCancellation(data);
+
+                  // 2. Apaga o documento do Firestore
+                  await doc.reference.delete();
+
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Agendamento cancelado com sucesso.'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Erro ao cancelar: $e'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -84,12 +180,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
           children: snapshot.data!.docs.map((doc) {
             Map<String, dynamic> data = doc.data()! as Map<String, dynamic>;
             DateTime eventDate = (data['eventDate'] as Timestamp).toDate();
+            String status = data['status'] ?? 'Pendente';
+            bool isPendente = status == 'Pendente';
 
-            // Constrói a linha de subtítulo, incluindo a variação se ela existir.
-            String subtitleText = '${DateFormat('EEEE, HH:mm', 'pt_BR').format(eventDate)}\nStatus: ${data['status']}';
+            String subtitleText = '${DateFormat('EEEE, HH:mm', 'pt_BR').format(eventDate)}\nStatus: $status';
             bool isThreeLine = false;
-            if (data.containsKey('serviceVariation') && data['serviceVariation'] != null) {
-              subtitleText += '\nOpção: ${data['serviceVariation']}';
+            if (data.containsKey('variationSize') && data['variationSize'] != 'Serviço Padrão') {
+              subtitleText += '\nOpção: ${data['variationSize']}';
               isThreeLine = true;
             }
 
@@ -102,6 +199,18 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 title: Text(data['serviceName'] ?? 'Serviço'),
                 subtitle: Text(subtitleText),
                 isThreeLine: isThreeLine,
+                // **** BOTÃO DE CANCELAR ****
+                // Só aparece se o status for "Pendente"
+                trailing: isPendente
+                    ? IconButton(
+                  icon: const Icon(Icons.cancel_outlined, color: Colors.red),
+                  tooltip: 'Cancelar Agendamento',
+                  onPressed: () {
+                    // Chama o diálogo de confirmação
+                    _showCancelConfirmationDialog(doc);
+                  },
+                )
+                    : null, // Não mostra nada se não estiver pendente
               ),
             );
           }).toList(),
@@ -110,4 +219,3 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
 }
-
