@@ -80,7 +80,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
     try {
       // A chave de API
-      const apiKey = "AIzaSyBiaS8qdEXdWThhSze2K9sluI4hI11Zyt8"; //
+      const apiKey = "AIzaSyBDxi5fLT8zh9VX4NpaMyTQP9V-FbToO3A"; //
       const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=$apiKey";
 
       final headers = {'Content-Type': 'application/json'};
@@ -258,4 +258,3 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 }
-

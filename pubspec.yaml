@@ -36,8 +36,9 @@ dependencies:
   firebase_auth: ^4.9.0
   cloud_firestore: ^4.9.1
   intl: ^0.20.2
-  http: ^1.2.1
+  http: ^1.6.0
   url_launcher: ^6.3.2
+  google_generative_ai: ^0.4.7
 
 dev_dependencies:
   flutter_test:
