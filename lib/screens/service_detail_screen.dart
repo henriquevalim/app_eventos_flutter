@@ -129,7 +129,7 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
           ],
         ),
       ),
-      // MUDANÇA AQUI: Adicionamos SafeArea para evitar sobreposição
+      // MUDANÇA AQUI: Adicionado SafeArea para evitar sobreposição
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16.0),

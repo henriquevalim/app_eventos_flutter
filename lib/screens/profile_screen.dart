@@ -118,7 +118,6 @@ class ProfileScreen extends StatelessWidget {
                   );
                 },
               ),
-              // **** LÓGICA ATUALIZADA AQUI ****
               ListTile(
                 leading: const Icon(Icons.lock_outline),
                 title: const Text('Alterar Senha'),

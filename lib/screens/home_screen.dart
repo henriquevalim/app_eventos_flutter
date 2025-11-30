@@ -49,7 +49,6 @@ class _HomeScreenState extends State<HomeScreen> {
           : null, // Se vazio, não mostra nada
       body: Column(
         children: [
-          // ... (O CÓDIGO DO CABEÇALHO PERMANECE IDÊNTICO AO ANTERIOR) ...
           Container(
             padding: const EdgeInsets.only(top: 50, left: 24, right: 24, bottom: 24),
             decoration: BoxDecoration(

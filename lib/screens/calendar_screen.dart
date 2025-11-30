@@ -17,8 +17,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
   // **** NOVA FUNÇÃO ****
   // Função para notificar o admin sobre um CANCELAMENTO
   Future<void> _launchWhatsAppCancellation(Map<String, dynamic> appointmentData) async {
-    // --- IMPORTANTE ---
-    const adminPhoneNumber = '5551920005515'; // <-- NÚMERO AQUI
+    // --- IMPORTANTE O NUMERO AQUI ---
+    const adminPhoneNumber = '5551920005515';
 
     final String serviceName = appointmentData['serviceName'] ?? 'Serviço';
     final String variationSize = appointmentData['variationSize'] ?? '';

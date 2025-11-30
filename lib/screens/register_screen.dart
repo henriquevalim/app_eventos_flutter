@@ -61,18 +61,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     } catch (e) {
       // Se cair aqui, pode ser o BUG do emulador.
-      // Nós apenas logamos o aviso e deixamos o código continuar para a verificação abaixo.
+      // apenas loga o aviso e deixamos o código continuar para a verificação abaixo.
       debugPrint("Aviso: Possível erro falso-positivo do emulador capturado: $e");
     }
 
     // 2. VERIFICAÇÃO DE SEGURANÇA E GRAVAÇÃO NO FIRESTORE
-    // Independentemente de ter dado o erro "Pigeon" ou não, verificamos:
+    // Independentemente de ter dado o erro "Pigeon" ou não, verifica:
     // "Existe alguém logado agora?"
     final user = FirebaseAuth.instance.currentUser;
 
     if (user != null) {
       // SIM! O utilizador foi criado (mesmo que tenha dado erro no meio do caminho).
-      // Então, garantimos que o nome é salvo no Firestore.
+      // Então, garantir que o nome é salvo no Firestore.
       try {
         await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
           'name': _nameController.text.trim(),

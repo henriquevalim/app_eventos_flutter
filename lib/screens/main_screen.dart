@@ -20,7 +20,7 @@ class _MainScreenState extends State<MainScreen> {
   // Lista de telas que serão exibidas. A ordem aqui importa!
   static const List<Widget> _widgetOptions = <Widget>[
     HomeScreen(),
-    // CORREÇÃO: O erro estava aqui. O nome da classe foi atualizado para CalendarScreen.
+    // Nome da classe foi atualizado para CalendarScreen.
     CalendarScreen(),
     ChatScreen(),
     ProfileScreen(),

@@ -84,7 +84,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               child: const Column(
                 children: [
-                  // Ícone/Logótipo (Pode substituir por uma imagem)
+                  // Ícone/Logótipo
                   Icon(Icons.event_seat_rounded, color: Colors.white, size: 80),
                   SizedBox(height: 16),
                   Text(
